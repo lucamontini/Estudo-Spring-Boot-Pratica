@@ -32,3 +32,13 @@ build/
 
 ### VS Code ###
 .vscode/
+.neon
+.env
+.env.local
+node_modules/
+
+### Spring Boot Local Configs ###
+**/src/main/resources/application-local.yaml
+**/src/main/resources/application-local.yml
+**/src/main/resources/application-local.properties
+
