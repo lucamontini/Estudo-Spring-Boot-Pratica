@@ -8,121 +8,156 @@ Projeto prático desenvolvido para fins de estudo e aprofundamento em **Spring B
 
 ## 📌 Sobre o Projeto
 
-Este repositório contém o código e anotações práticas desenvolvidas ao longo do curso, com o objetivo de explorar os principais conceitos do ecossistema Spring Boot, arquitetura de APIs RESTful, persistência de dados e integração com ferramentas modernas de assistência por IA (*IA Coding*).
+Uma API RESTful de **cadastro de livros** construída do zero ao longo do curso. O projeto cobre os conceitos fundamentais do ecossistema Spring Boot — desde a configuração do datasource até a integração com IA generativa para geração automática de resenhas.
+
+### O que a API faz
+
+- **CRUD completo de livros** (`POST`, `GET`, `PUT`, `DELETE`) exposto em `/books`
+- **Geração automática de resenha** via IA (Spring AI) no momento do cadastro
+- **Validação de entrada** com Bean Validation (`@NotNull`, `@Size`, `@Min/@Max`)
+- **Versionamento de API** via header HTTP (`X-API-VERSION`, default `v1`)
+- **Banco de dados PostgreSQL** hospedado no [Neon](https://neon.tech), com schema gerenciado pelo Hibernate (`ddl-auto: update`)
 
 ---
 
-## 🛠️ Tecnologias e Dependências
+## 🛠️ Stack
 
-- **Linguagem:** Java 25
-- **Framework:** Spring Boot 4.1.1
-- **Módulos do Spring:**
-  - **Spring Web MVC:** Desenvolvimento de endpoints RESTful e controladores HTTP.
-  - **Spring Data JPA:** Abstração e facilitação de acesso a dados e persistência relacional.
-  - **Spring Boot Starter Validation:** Validação declarativa de dados com Bean Validation.
-- **Banco de Dados:** PostgreSQL (driver `postgresql`)
-- **Gerenciador de Dependências e Build:** Apache Maven (com Maven Wrapper `mvnw`)
-- **Testes:** JUnit 5 e starters de teste do Spring Boot
+| Camada | Tecnologia |
+|---|---|
+| Linguagem | Java 25 |
+| Framework | Spring Boot 4.1.1 |
+| Web | Spring Web MVC |
+| Persistência | Spring Data JPA + Hibernate |
+| Validação | Spring Boot Starter Validation |
+| IA | Spring AI 2.0 |
+| Banco de dados | PostgreSQL (Neon) |
+| Build | Apache Maven (Maven Wrapper `./mvnw`) |
+| Testes | JUnit 5 |
 
 ---
 
-## 📂 Estrutura do Projeto
+## 📂 Estrutura de Pacotes
 
 ```text
-spring-boot-na-pratica/
-├── src/
-│   ├── main/
-│   │   ├── java/com/example/spring_boot_na_pratica/
-│   │   │   └── SpringBootNaPraticaApplication.java
-│   │   └── resources/
-│   │       └── application.yaml
-│   └── test/
-│       └── java/com/example/spring_boot_na_pratica/
-│           └── SpringBootNaPraticaApplicationTests.java
-├── pom.xml
-├── mvnw
-├── mvnw.cmd
-├── LICENSE
-└── README.md
+src/main/java/com/example/spring_boot_na_pratica/
+├── configs/
+│   └── WebConfig.java          # Versionamento de API via header HTTP
+├── controllers/
+│   └── BookController.java     # Endpoints REST de /books
+├── dtos/
+│   └── BookRecordDto.java      # Record de entrada com validações
+├── models/
+│   └── BookModel.java          # Entidade JPA mapeada para tb_books
+├── repositories/
+│   └── BookRepository.java     # Interface Spring Data JPA
+├── services/
+│   ├── BookService.java        # Regras de negócio do CRUD
+│   └── ReviewService.java      # Geração de resenha via IA
+└── SpringBootNaPraticaApplication.java
+```
+
+---
+
+## 🔌 Endpoints
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/books` | Cadastra um livro e gera a resenha via IA |
+| `GET` | `/books` | Lista todos os livros |
+| `GET` | `/books/{id}` | Busca um livro por UUID |
+| `PUT` | `/books/{id}` | Atualiza os dados de um livro |
+| `DELETE` | `/books/{id}` | Remove um livro |
+
+### Exemplo de payload (`POST /books`)
+
+```json
+{
+  "title": "Clean Code",
+  "author": "Robert C. Martin",
+  "publisher": "Prentice Hall",
+  "publicationYear": 2008
+}
+```
+
+### Exemplo de resposta
+
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "title": "Clean Code",
+  "author": "Robert C. Martin",
+  "publisher": "Prentice Hall",
+  "publicationYear": 2008,
+  "review": "Resenha gerada automaticamente pela IA..."
+}
 ```
 
 ---
 
 ## ⚙️ Pré-requisitos
 
-Para clonar, compilar e executar esta aplicação localmente, você precisará de:
-
-- **JDK 25** configurado no ambiente.
-- **Git** instalado.
-- Instância do **PostgreSQL** em execução (localmente ou via Docker).
+- **JDK 25** configurado no `JAVA_HOME`
+- **Git** instalado
+- Instância **PostgreSQL** acessível (local, Docker ou [Neon](https://neon.tech))
 
 ---
 
 ## 🚀 Como Executar
 
-### 1. Clonar o Repositório
+### 1. Clonar o repositório
+
 ```bash
-git clone <URL_DO_SEU_REPOSITORIO>
+git clone <URL_DO_REPOSITORIO>
 cd spring-boot-na-pratica
 ```
 
-### 2. Configurar o Banco de Dados
-Ajuste as propriedades de conexão com o PostgreSQL no arquivo `src/main/resources/application.yaml`, configurando URL, usuário e senha conforme seu ambiente local:
+### 2. Configurar variáveis de ambiente
 
-```yaml
-spring:
-  application:
-    name: spring-boot-na-pratica
-  datasource:
-    url: jdbc:postgresql://localhost:5432/seu_banco
-    username: seu_usuario
-    password: sua_senha
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
+Crie um arquivo `.env` na raiz do projeto com as credenciais do banco:
+
+```properties
+DB_URL=jdbc:postgresql://<host>:<port>/<database>
+DB_USER=<usuario>
+DB_PASSWORD=<senha>
 ```
 
-### 3. Compilar o Projeto
-Utilize o Maven Wrapper incluído no repositório:
+> O arquivo `.env` já está no `.gitignore` — nunca suba credenciais para o repositório.
+
+### 3. Executar a aplicação
 
 ```bash
-# Linux/macOS
-./mvnw clean compile
-
-# Windows
-mvnw.cmd clean compile
-```
-
-### 4. Executar a Aplicação
-```bash
-# Linux/macOS
 ./mvnw spring-boot:run
-
-# Windows
-mvnw.cmd spring-boot:run
 ```
 
-A aplicação será inicializada por padrão na porta `8080` (acessível em `http://localhost:8080`).
+A aplicação sobe na porta `8080` → `http://localhost:8080`
 
-### 5. Executar os Testes
+### 4. Executar os testes
+
 ```bash
-# Linux/macOS
-./mvnw test
-
-# Windows
-mvnw.cmd test
+./mvnw -q verify
 ```
 
 ---
 
-## 🤝 Créditos e Agradecimentos
+## 📐 Convenções do Projeto
 
-- Agradecimentos à **Michelli Brito** pelo conteúdo educacional de alta qualidade compartilhado na comunidade.
-- Link da aula: [Spring Boot com IA Coding na Prática | Curso Completo 2026](https://youtu.be/01yqAcaYsL0)
+- **Sem Lombok** — construtores, getters e setters escritos à mão
+- **Injeção por construtor** — sem `@Autowired` em campos
+- **`BeanUtils.copyProperties`** para copiar DTO → entidade
+- **Identificadores UUID** nas chaves primárias
+- **Tabelas prefixadas** com `tb_` (ex.: `tb_books`)
+- **Lógica de negócio** exclusivamente na camada de serviço
+
+---
+
+## 🤝 Créditos
+
+- Aula ministrada por **Michelli Brito**
+- [Spring Boot com IA Coding na Prática | Curso Completo 2026](https://youtu.be/01yqAcaYsL0)
 
 ---
 
 ## 📄 Licença
 
-Este projeto está sob a licença **MIT**. Consulte o arquivo [LICENSE](LICENSE) para obter mais informações.
+Este projeto está sob a licença **MIT**. Consulte o arquivo [LICENSE](LICENSE) para mais informações.
+
